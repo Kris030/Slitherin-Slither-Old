@@ -3,28 +3,32 @@ import { Message } from "discord.js";
 
 export default class PrefixCommandCondition extends MessageCondition {
 
-    private readonly prefix: string;
+	private readonly prefix: string;
 	private readonly confirmArgs: () => boolean;
-    constructor(msg: Message, prefix: string, confirmArgs: () => boolean = undefined) {
-        super(msg);
-        this.prefix = prefix;
+	constructor(msg: Message, prefix: string, confirmArgs: () => boolean = undefined) {
+		super(msg);
+		this.prefix = prefix;
 		this.confirmArgs = confirmArgs;
-    }
+	}
 
-    public shouldRun(): boolean {
-        const ts = PrefixCommandCondition.parseArgs(this.msg.content),
-              b = ts.length > 0 && ts[0] == this.prefix;
+	public shouldRun(): boolean {
+		const ts = PrefixCommandCondition.parseArgs(this.msg.content),
+			  b = ts.length > 0 && ts[0] == this.prefix;
 
-        if (!b)
+		if (!b)
 			return false;
 
-        this.args = ts;
+		this.args = ts;
 		
 		if (!this.confirmArgs)
 			return true;
-        return this.confirmArgs();
-    }
-    
+		return this.confirmArgs();
+	}
+
+	public toString(): string {
+		return `⏯️ PrefixCondition ["${this.prefix}"]`;
+	}
+	
 	public static parseArgs(str: string): string[] {
 
 		const tokens: string[] = [];
