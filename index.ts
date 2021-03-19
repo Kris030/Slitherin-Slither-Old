@@ -7,12 +7,31 @@ import MessageCondition from './Conditions/MessageCondition';
 import CombinedCondition from './Conditions/CombinedCondition';
 import ContainsCondition from './Conditions/ContainsCondition';
 import PrefixCommandCondition from './Conditions/PrefixCommandCondition';
-import { sleep } from "./utils";
+import { getRandomElement, sleep } from "./utils";
 
 const discordClient = new Discord.Client();
 
+let statusInterval: NodeJS.Timeout;
 discordClient.on('ready', () => {
 	console.log(`Logged in as ${discordClient.user.tag}!`);
+
+    const statuses: {
+        name: string,
+        options?: Discord.ActivityOptions
+    }[] = [
+        {
+            name: 'you on the toilet',
+            options: {
+                type: 'WATCHING'
+            }
+        }
+    ];
+    const setStatus = () => {
+        const s = getRandomElement(statuses);
+        discordClient.user.setActivity(s.name, s.options);
+    };
+    setStatus();
+    statusInterval = setInterval(setStatus, 30_000);
 });
 
 discordClient.on('message', async msg => {
@@ -32,6 +51,7 @@ discordClient.login(config.token);
 process.on('SIGINT', () => {
 	console.log('you pressed CTRL^C, logging off... 😞');
 
+    clearInterval(statusInterval);
 	for (const c of discordClient.voice.connections.values())
 		c.disconnect();
 
