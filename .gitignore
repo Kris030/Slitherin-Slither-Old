@@ -6,3 +6,5 @@ package-lock.json
 # ts
 *.js
 *.js.map
+
+config.ts
