@@ -43,7 +43,7 @@ export function indent(str: string, indent: number, indenter: string = '\t') {
 	for (let i = 0; i < indent; i++)
 		repl += indenter;
 
-	return repl + str.replaceAll('\n', '\n' + repl);
+	return repl + str.replace(/g\n/g, '\n' + repl);
 }
 
 /**
@@ -62,46 +62,46 @@ export function emojiNumber(n: number) {
  */
 export function emojiNumberString(n: string) {
 	return n
-		.replaceAll('0', '0️⃣\0')
-		.replaceAll('1', '1️⃣\0')
-		.replaceAll('2', '2️⃣\0')
-		.replaceAll('3', '3️⃣\0')
-		.replaceAll('4', '4️⃣\0')
-		.replaceAll('5', '5️⃣\0')
-		.replaceAll('6', '6️⃣\0')
-		.replaceAll('7', '7️⃣\0')
-		.replaceAll('8', '8️⃣\0')
-		.replaceAll('9', '9️⃣\0');
+		.replace(/0/g, '0️⃣ ')
+		.replace(/1/g, '1️⃣ ')
+		.replace(/2/g, '2️⃣ ')
+		.replace(/3/g, '3️⃣ ')
+		.replace(/4/g, '4️⃣ ')
+		.replace(/5/g, '5️⃣ ')
+		.replace(/6/g, '6️⃣ ')
+		.replace(/7/g, '7️⃣ ')
+		.replace(/8/g, '8️⃣ ')
+		.replace(/9/g, '9️⃣ ');
 }
 
 export function emojiLetterString(str: string) {
 	return str
-	.replaceAll(/a/ig, '🇦\0')
-	.replaceAll(/b/ig, '🇧\0')
-	.replaceAll(/c/ig, '🇨\0')
-	.replaceAll(/d/ig, '🇩\0')
-	.replaceAll(/e/ig, '🇪\0')
-	.replaceAll(/f/ig, '🇫\0')
-	.replaceAll(/g/ig, '🇬\0')
-	.replaceAll(/h/ig, '🇭\0')
-	.replaceAll(/i/ig, '🇮\0')
-	.replaceAll(/j/ig, '🇯\0')
-	.replaceAll(/k/ig, '🇰\0')
-	.replaceAll(/l/ig, '🇱\0')
-	.replaceAll(/m/ig, '🇲\0')
-	.replaceAll(/n/ig, '🇳\0')
-	.replaceAll(/o/ig, '🇴\0')
-	.replaceAll(/p/ig, '🇵\0')
-	.replaceAll(/q/ig, '🇶\0')
-	.replaceAll(/r/ig, '🇷\0')
-	.replaceAll(/s/ig, '🇸\0')
-	.replaceAll(/t/ig, '🇹\0')
-	.replaceAll(/u/ig, '🇺\0')
-	.replaceAll(/v/ig, '🇻\0')
-	.replaceAll(/w/ig, '🇼\0')
-	.replaceAll(/x/ig, '🇽\0')
-	.replaceAll(/y/ig, '🇾\0')
-	.replaceAll(/z/ig, '🇿\0');  
+	.replace(/a/ig, '🇦 ')
+	.replace(/b/ig, '🇧 ')
+	.replace(/c/ig, '🇨 ')
+	.replace(/d/ig, '🇩 ')
+	.replace(/e/ig, '🇪 ')
+	.replace(/f/ig, '🇫 ')
+	.replace(/g/ig, '🇬 ')
+	.replace(/h/ig, '🇭 ')
+	.replace(/i/ig, '🇮 ')
+	.replace(/j/ig, '🇯 ')
+	.replace(/k/ig, '🇰 ')
+	.replace(/l/ig, '🇱 ')
+	.replace(/m/ig, '🇲 ')
+	.replace(/n/ig, '🇳 ')
+	.replace(/o/ig, '🇴 ')
+	.replace(/p/ig, '🇵 ')
+	.replace(/q/ig, '🇶 ')
+	.replace(/r/ig, '🇷 ')
+	.replace(/s/ig, '🇸 ')
+	.replace(/t/ig, '🇹 ')
+	.replace(/u/ig, '🇺 ')
+	.replace(/v/ig, '🇻 ')
+	.replace(/w/ig, '🇼 ')
+	.replace(/x/ig, '🇽 ')
+	.replace(/y/ig, '🇾 ')
+	.replace(/z/ig, '🇿 ');  
 }
 
 export function emojifyString(str: string) {

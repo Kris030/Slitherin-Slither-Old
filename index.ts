@@ -8,6 +8,7 @@ import CombinedCondition from './Conditions/CombinedCondition';
 import ContainsCondition from './Conditions/ContainsCondition';
 import PrefixCommandCondition from './Conditions/PrefixCommandCondition';
 import { emojifyString, getRandomElement, sleep } from "./utils";
+import MessageAction from "./MessageAction";
 
 const discordClient = new Discord.Client();
 
@@ -74,57 +75,51 @@ discordClient.on('message', async (msg: Message) => {
 discordClient.login(config.token);
 
 process.on('SIGINT', () => {
-	console.log('you pressed CTRL^C, logging off... 😞');
 
 	clearInterval(statusInterval);
-	for (const c of discordClient.voice.connections.values())
-		c.disconnect();
-
 	discordClient.destroy();
+	console.log('you pressed CTRL^C, logging off... 😞');
 });
 
 const createActions = (msg: Message) => {
-	const arr: {
-		condition: MessageCondition,
-		callback: (args: any) => any
-	}[] = [
-		{
-			condition: new ContainsCondition(msg, 'please fuck me'),
-			callback: async () => {
+	const arr: MessageAction[] = [
+		new MessageAction(
+			new ContainsCondition(msg, 'please fuck me'),
+			async () => {
 				await msg.react('🇫');
 				await msg.react('🇺');
 				await msg.react('🇨');
 				await msg.react('🇰');
 				msg.react('⬆️');
 			}
-		}, {
-			condition: new PrefixCommandCondition(msg, 'ssparse'),
-			callback: async tokens =>
-				msg.channel.send(JSON.stringify(tokens, undefined, 2))
-		}, {
-			condition: new ContainsCondition(msg, 'based'),
-			callback: () =>
-				msg.react('👺')
-		}, {
-			condition: new PrefixCommandCondition(msg, 'ssaudio'),
-			callback: async args => {
+		), new MessageAction(
+			new PrefixCommandCondition(msg, 'ssparse'),
+			async (tokens: string[]) => msg.channel.send(JSON.stringify(tokens, undefined, 2))
+		), new MessageAction(
+			new ContainsCondition(msg, 'based'),
+			() => msg.react('👺')
+		), new MessageAction(
+			new PrefixCommandCondition(msg, 'ssaudio'),
+			async args => {
 				const vc = msg.member.voice.channel;
-				if (!vc || !vc.joinable) {
-					msg.channel.send("sry can't join");
-					return;
-				}
+				if (!vc || !vc.joinable)
+					return msg.channel.send("sry can't join");
 
-				const stream = await ytdl(args[1]);
+				
+				let yTErr = false, yStream = ytdl(args[1]);
+				yStream.then(y => {
+					y.on('end', () => console.log('ytstream end'));
+				}).catch(() => yTErr = true);
+
 				const connection = await vc.join();
+				const dispatcher = connection.play(await yStream);
 
-				const dispatcher = connection.play(stream);
-
-				await sleep(5000);
+				await sleep(30_000);
 				connection.disconnect();
 			}
-		}, {
-			condition: new PrefixCommandCondition(msg, 'sslist'),
-			callback: async () => {
+		), new MessageAction(
+			new PrefixCommandCondition(msg, 'sslist'),
+			async () => {
 				let str = '', i = 0;
 				const l = arr.length - 1;
 				for (; i < l; i++)
@@ -133,25 +128,42 @@ const createActions = (msg: Message) => {
 				
 				msg.channel.send(str);
 			}
-		}, {
-			condition:	new CombinedCondition(msg,
-							new ContainsCondition(msg, 'contains1'),
-							new ContainsCondition(msg, 'contains2'),
-							new PrefixCommandCondition(msg, 'sswaffen'),
+		), new MessageAction(
+			new CombinedCondition(msg,
+						new ContainsCondition(msg, 'contains1'),
+						new ContainsCondition(msg, 'contains2'),
+						new PrefixCommandCondition(msg, 'sswaffen'),
+						new CombinedCondition(msg,
+							new ContainsCondition(msg, 'contains3'),
 							new CombinedCondition(msg,
-								new ContainsCondition(msg, 'contains3'),
-								new CombinedCondition(msg,
-									new ContainsCondition(msg, 'contains4'),
-								),
-							)
-						),
-			callback: (msg: Message) =>
-				msg.reply('it fucking works lol 👺')
-		}, {
-			condition: new PrefixCommandCondition(msg, 'ssemojify'),
-			callback: async (args: string[]) =>
-				msg.channel.send(emojifyString(args[1]))
-		},
+								new ContainsCondition(msg, 'contains4'),
+							),
+						)
+					),
+			() => msg.reply('it fucking works lol 👺')
+		), new MessageAction(
+			new PrefixCommandCondition(msg, 'ssemojify'),
+			async (args: string[]) => msg.channel.send(emojifyString(args[1]))
+		), new MessageAction(
+            new PrefixCommandCondition(msg, 'sstart'),
+            async () => {
+				await msg.reply('you stoned?');
+
+				try {
+					await msg.channel.awaitMessages(
+						(m: Discord.Message) =>
+							m.author == msg.author && m.content.toLowerCase() == 'yes',
+						{
+							time: 30_000,
+							max: 1,
+							errors: ['time'],
+						}
+					);
+					msg.channel.send('I\'m tellin your momma');
+				} catch (e) {}
+
+			}
+        ),
 	];
 	return arr;
 };

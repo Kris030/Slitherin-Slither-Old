@@ -4,11 +4,11 @@ import { Message } from "discord.js";
 export default class PrefixCommandCondition extends MessageCondition {
 
 	private readonly prefix: string;
-	private readonly confirmArgs: () => boolean;
-	constructor(msg: Message, prefix: string, confirmArgs: () => boolean = undefined) {
+	private readonly parse: boolean;
+	constructor(msg: Message, prefix: string, parse: boolean = true) {
 		super(msg);
 		this.prefix = prefix;
-		this.confirmArgs = confirmArgs;
+		this.parse = parse;
 	}
 
 	public shouldRun(): boolean {
@@ -20,9 +20,7 @@ export default class PrefixCommandCondition extends MessageCondition {
 
 		this.args = ts;
 		
-		if (!this.confirmArgs)
-			return true;
-		return this.confirmArgs();
+		return true;
 	}
 
 	public toString(): string {
@@ -33,9 +31,9 @@ export default class PrefixCommandCondition extends MessageCondition {
 
 		const tokens: string[] = [];
 		
-		let buff = '', inQuotes = false, escaped = false, quote;
+		let buff = '', inQuotes = false, escaped = false, quote: string;
 		for (let i = 0; i < str.length; i++) {
-			const c = str[i];
+			let c = str[i];
 
 			if (!escaped && c == '\\') {
 				escaped = !escaped;
@@ -56,12 +54,24 @@ export default class PrefixCommandCondition extends MessageCondition {
 				}
 			}
 
-			if (!inQuotes && c == ' ') {
+			if (!inQuotes && /[\s\n]/.test(c)) {
 				tokens.push(buff);
 				buff = '';
 				continue;
 			}
 
+			if (escaped) {
+				switch (c) {
+					case 'n':
+						c = '\n';
+						break;
+				
+					default:
+						break;
+				}
+			}
+
+			escaped = false;
 			buff += c;
 			
 		}
