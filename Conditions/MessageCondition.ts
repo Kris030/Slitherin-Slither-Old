@@ -1,9 +1,10 @@
 import { Message } from "discord.js";
 
 export default abstract class MessageCondition {
-	
-	protected msg: Message;
+
 	public args: any;
+	public errors: any[] = [];
+	protected msg: Message;
 
 	constructor(msg: Message) {
 		this.msg = msg;

@@ -3,6 +3,7 @@
 		"target": "ESNext",
 		"module": "CommonJS",
 		"esModuleInterop": true,
-		"moduleResolution": "Node"
+		"moduleResolution": "Node",
+		"removeComments": true
 	}
 }

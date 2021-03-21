@@ -1,3 +1,4 @@
+import { Client, User } from "discord.js";
 
 /**
  * Returns a promise for waiting an amount of milliseconds.
@@ -35,15 +36,11 @@ export function getRandomElementExcludes<T>(array: T[], excludes: T[]): T {
  * @param level The indentation level.
  * @param indenter The string to indent with. A single tab by default.
  */
-export function indent(str: string, indent: number, indenter: string = '\t') {
-	if (indent < 0)
+export function indent(str: string, level: number, indenter: string = '\t') {
+	if (level < 0)
 		throw "Indent should be greater than 0.";
-
-	let repl = '';
-	for (let i = 0; i < indent; i++)
-		repl += indenter;
-
-	return repl + str.replace(/g\n/g, '\n' + repl);
+	const repl = indenter.repeat(level);
+	return repl + str.replace(/\n/g, '\n' + repl);
 }
 
 /**
@@ -76,34 +73,70 @@ export function emojiNumberString(n: string) {
 
 export function emojiLetterString(str: string) {
 	return str
-	.replace(/a/ig, '🇦 ')
-	.replace(/b/ig, '🇧 ')
-	.replace(/c/ig, '🇨 ')
-	.replace(/d/ig, '🇩 ')
-	.replace(/e/ig, '🇪 ')
-	.replace(/f/ig, '🇫 ')
-	.replace(/g/ig, '🇬 ')
-	.replace(/h/ig, '🇭 ')
-	.replace(/i/ig, '🇮 ')
-	.replace(/j/ig, '🇯 ')
-	.replace(/k/ig, '🇰 ')
-	.replace(/l/ig, '🇱 ')
-	.replace(/m/ig, '🇲 ')
-	.replace(/n/ig, '🇳 ')
-	.replace(/o/ig, '🇴 ')
-	.replace(/p/ig, '🇵 ')
-	.replace(/q/ig, '🇶 ')
-	.replace(/r/ig, '🇷 ')
-	.replace(/s/ig, '🇸 ')
-	.replace(/t/ig, '🇹 ')
-	.replace(/u/ig, '🇺 ')
-	.replace(/v/ig, '🇻 ')
-	.replace(/w/ig, '🇼 ')
-	.replace(/x/ig, '🇽 ')
-	.replace(/y/ig, '🇾 ')
-	.replace(/z/ig, '🇿 ');  
+		.replace(/a/ig, '🇦 ')
+		.replace(/b/ig, '🇧 ')
+		.replace(/c/ig, '🇨 ')
+		.replace(/d/ig, '🇩 ')
+		.replace(/e/ig, '🇪 ')
+		.replace(/f/ig, '🇫 ')
+		.replace(/g/ig, '🇬 ')
+		.replace(/h/ig, '🇭 ')
+		.replace(/i/ig, '🇮 ')
+		.replace(/j/ig, '🇯 ')
+		.replace(/k/ig, '🇰 ')
+		.replace(/l/ig, '🇱 ')
+		.replace(/m/ig, '🇲 ')
+		.replace(/n/ig, '🇳 ')
+		.replace(/o/ig, '🇴 ')
+		.replace(/p/ig, '🇵 ')
+		.replace(/q/ig, '🇶 ')
+		.replace(/r/ig, '🇷 ')
+		.replace(/s/ig, '🇸 ')
+		.replace(/t/ig, '🇹 ')
+		.replace(/u/ig, '🇺 ')
+		.replace(/v/ig, '🇻 ')
+		.replace(/w/ig, '🇼 ')
+		.replace(/x/ig, '🇽 ')
+		.replace(/y/ig, '🇾 ')
+		.replace(/z/ig, '🇿 ');  
 }
 
+/**
+ * Uses `emojiLetterString` and `emojiNumberString` on a string.
+ * @param str The string to emojify.
+ */
 export function emojifyString(str: string) {
 	return emojiLetterString(emojiNumberString(str));
+}
+
+export type ParseSupportedType = String | Number | Boolean | Date | User | URL | Object | BigInt | RegExp;
+
+export function parseType(str: string, type: ParseSupportedType): ParseSupportedType {
+	switch (type) {
+		case String: return str;
+		case Number: return parseInt(str);
+		case Boolean: return Boolean(str);
+		case Object: return JSON.parse(str);
+		case Date: return new Date(str);
+		case URL: return new URL(str);
+		case BigInt: return BigInt(str);
+		case RegExp: return new RegExp(str);
+		case User: return userFromMention(str);
+		default: throw 'Unsupported type ' + type;
+	}
+}
+
+export function isMention(str: string): boolean {
+	return /\<[\!\&\@]{0,2}\d{18}\>/.test(str);
+}
+
+export function userFromMention(str: string, client?: Client): string | User {
+	if (!isMention(str))
+		throw 'Not a mention: ' + str;
+
+	str = str.slice(2, -1);
+	if (str.startsWith('!'))
+		str = str.slice(1);
+
+	return client ? client.users.cache.get(str) : str;
 }

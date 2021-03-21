@@ -4,33 +4,39 @@ import { Message } from "discord.js";
 export default class PrefixCommandCondition extends MessageCondition {
 
 	private readonly prefix: string;
-	private readonly parse: boolean;
-	constructor(msg: Message, prefix: string, parse: boolean = true) {
+	private readonly parseFully: boolean;
+	private readonly ignoreEmpty: boolean;
+
+	constructor(msg: Message, prefix: string, options: PrefixCommandConditionOptions = { parseFully: true, ignoreEmpty: true, }) {
 		super(msg);
 		this.prefix = prefix;
-		this.parse = parse;
+		this.ignoreEmpty = options.ignoreEmpty;
+		this.parseFully = options.parseFully;
 	}
 
 	public shouldRun(): boolean {
-		const ts = PrefixCommandCondition.parseArgs(this.msg.content),
-			  b = ts.length > 0 && ts[0] == this.prefix;
-
-		if (!b)
-			return false;
-
-		this.args = ts;
-		
-		return true;
+		this.parseArgs();
+		return this.args.length > 0 && this.args[0] == this.prefix;
 	}
 
 	public toString(): string {
 		return `⏯️ PrefixCondition ["${this.prefix}"]`;
 	}
 	
-	public static parseArgs(str: string): string[] {
-
-		const tokens: string[] = [];
+	public parseArgs() {
+		this.args = [];
+		const tokenSeparator = /[\s\n]/, str = this.msg.content;
 		
+		if (!this.parseFully) {
+			const ind = str.search(tokenSeparator);
+			if (ind == -1)
+				this.args.push(str);
+			else
+				this.args = [str.substr(0, ind), str.substr(ind + 1, str.length - ind)];
+			return;
+		}
+
+		const quotes = ["'", '"', '`',];
 		let buff = '', inQuotes = false, escaped = false, quote: string;
 		for (let i = 0; i < str.length; i++) {
 			let c = str[i];
@@ -40,7 +46,7 @@ export default class PrefixCommandCondition extends MessageCondition {
 				continue;
 			}
 
-			if (c == "'" || c == '"' || c == '`') {
+			if (quotes.includes(c)) {
 				if (inQuotes) {
 					if (c == quote && !escaped) {
 						inQuotes = false;
@@ -54,8 +60,8 @@ export default class PrefixCommandCondition extends MessageCondition {
 				}
 			}
 
-			if (!inQuotes && /[\s\n]/.test(c)) {
-				tokens.push(buff);
+			if (!inQuotes && tokenSeparator.test(c)) {
+				this.args.push(buff);
 				buff = '';
 				continue;
 			}
@@ -65,19 +71,29 @@ export default class PrefixCommandCondition extends MessageCondition {
 					case 'n':
 						c = '\n';
 						break;
-				
+					case 't':
+						c = '\t';
+						break;
 					default:
 						break;
 				}
+				escaped = false;
 			}
 
-			escaped = false;
 			buff += c;
-			
 		}
 
-		tokens.push(buff);
+		this.args.push(buff);
 
-		return tokens;
+		this.args = this.ignoreEmpty ? this.args : this.args.filter((t: string) => t != '');
 	}
+}
+
+type PrefixCommandConditionOptions = {
+	parseFully?: boolean;
+	ignoreEmpty?: boolean;
+};
+
+export {
+	PrefixCommandConditionOptions,
 }
