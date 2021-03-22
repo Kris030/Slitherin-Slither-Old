@@ -70,17 +70,17 @@ discordClient.on('message', async (msg: Message) => {
 		return;
 
 	const messageActions = createActions(msg);
-	for (const messageAction of messageActions)
-		messageAction.tryRun();
+	//for (const messageAction of messageActions)
+	//	messageAction.tryRun();
+
+	const b = await Promise.all(messageActions.map(a => a.tryRun()));
+	const any = b.includes(true);
 	
-	//const b = await Promise.all(messageActions.map(a => a.tryRun()));
-	//const any = b.includes(true);
 });
 
 discordClient.login(config.token);
 
 process.on('SIGINT', () => {
-
 	clearInterval(statusInterval);
 	discordClient.destroy();
 	console.log('you pressed CTRL^C, logging off... 😞');
@@ -103,7 +103,7 @@ const createActions = (msg: Message) => {
 		), new MessageAction(
 			new ContainsCondition(msg, 'based'), () => msg.react('👺')
 		), new MessageAction(
-			new TypedPrefixCommandCondition(msg, 'ssaudio', [URL,]),
+			new PrefixCommandCondition(msg, 'ssaudio', ),//[URL,]),
 			async (args: any[]) => {
 				const vc = msg.member.voice.channel;
 				if (!vc || !vc.joinable)
@@ -111,10 +111,10 @@ const createActions = (msg: Message) => {
 				
 				const url: URL = args[1];
 
-				let yTErr = false, yStream = ytdl(url.href);
-				yStream.then(y => {
-					y.on('end', () => console.log('ytstream end'));
-				}).catch(() => yTErr = true);
+				//let yTErr = false, yStream = ytdl(url.href);
+				//yStream.then(y => {
+				//	y.on('end', () => console.log('ytstream end'));
+				//}).catch(() => yTErr = true);
 
 				const connection = await vc.join();
 				const dispatcher = connection.play(fs.createReadStream('C:/Users/Én/Music/Saját/Fav/LOLZ/Crazy Frog - Axel F.mp3'));//await yStream);

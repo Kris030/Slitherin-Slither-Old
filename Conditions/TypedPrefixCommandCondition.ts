@@ -26,12 +26,14 @@ export default class TypedPrefixCommandCondition extends PrefixCommandCondition 
 			}
 		}
 
-		for (; i < this.requiredParams.length + this.optionalParams.length; i++) {
-			try {
-				this.args[i] = parseType(this.args[i], this.optionalParams[i - 1]);
-			} catch {}
+		if (this.optionalParams) {
+			for (; i < this.requiredParams.length + this.optionalParams.length; i++) {
+				try {
+					this.args[i] = parseType(this.args[i], this.optionalParams[i - 1]);
+				} catch {}
+			}
 		}
-
+		
 		return this.errors;
 	}
 }

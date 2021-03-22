@@ -20,13 +20,11 @@ export default class MessageAction {
     public async tryRun() {
         try {
             const shouldRun = await this.condition.shouldRun();
-
+            
             if (shouldRun) {
-                if (this.condition.errors.length > 0) {
-                    if (this.runWithErrors) {
-                        this.callback(this.condition.args, this.condition.errors);
-                        this._didRun = true;
-                    }
+                if (this.condition.errors.length == 0 || this.runWithErrors) {
+                    this.callback(this.condition.args, this.condition.errors);
+                    this._didRun = true;
                 }
             }
         } catch (e) {
