@@ -1,4 +1,4 @@
-import { Client, User } from "discord.js";
+import { Client, Message, TextChannel, User } from "discord.js";
 
 /**
  * Returns a promise for waiting an amount of milliseconds.
@@ -98,7 +98,15 @@ export function emojiLetterString(str: string) {
 		.replace(/w/ig, '🇼 ')
 		.replace(/x/ig, '🇽 ')
 		.replace(/y/ig, '🇾 ')
-		.replace(/z/ig, '🇿 ');  
+		.replace(/z/ig, '🇿 ');
+}
+
+export function emojiSymbolString(str: string) {
+	return str
+		.replace(/\?/ig, '❓ ')
+		.replace(/\!/ig, '❗ ')
+		.replace(/\./ig, '**ₒ** ')
+		.replace(/\,/ig, '**₎** ');
 }
 
 /**
@@ -106,7 +114,13 @@ export function emojiLetterString(str: string) {
  * @param str The string to emojify.
  */
 export function emojifyString(str: string) {
-	return emojiLetterString(emojiNumberString(str));
+	return emojiSymbolString(
+		emojiLetterString(
+			emojiNumberString(
+				str
+				)
+			)
+		);
 }
 
 export type ParseSupportedType = String | Number | Boolean | Date | User | URL | Object | BigInt | RegExp;
@@ -139,4 +153,60 @@ export function userFromMention(str: string, client?: Client): string | User {
 		str = str.slice(1);
 
 	return client ? client.users.cache.get(str) : str;
+}
+
+export type DialogBranch = {
+	text: string;
+	responses?: {
+		answer: string | ((a: Message) => boolean),
+		branch: DialogBranch
+	}[];
+};
+
+export async function traverseDialogTree(channel: TextChannel, users: User | User[], tree: DialogBranch, { list_options = false, timeout = 60_000 }: { list_options?: boolean; timeout?: number; } = {}) {
+	channel.send(tree.text);
+	if (!tree.responses || tree.responses.length == 0)
+		return;
+
+	if (!Array.isArray(users))
+		users = [users];
+
+	if (list_options)
+		for (const r of tree.responses)
+			if (typeof(r.answer) == 'string')
+				await channel.send(r.answer);
+
+	try {
+		let dt: DialogBranch;
+		await channel.awaitMessages(
+			(m: Message) => {
+				let a: boolean;
+				if (users)
+					a = (users as User[]).includes(m.author);
+				else
+					a = true;
+				
+				return a && tree.responses.findIndex(x => {
+					let b: boolean;
+					if (typeof(x.answer) == 'string')
+						b = x.answer == m.content;
+					else if (typeof(x.answer) == 'function')
+						b = x.answer(m);
+					else
+						b = false;
+					
+					if (b)
+						dt = x.branch;
+					return b;
+				}) != -1;
+			}, {
+				time: timeout,
+				max: 1,
+				errors: ['time'],
+			}
+		);
+		
+		if (dt)
+			await traverseDialogTree(channel, users, dt, {list_options, timeout });
+	} catch (err) {}
 }

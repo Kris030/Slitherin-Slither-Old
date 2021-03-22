@@ -1,4 +1,4 @@
-import MessageCondition from "./Conditions/MessageCondition";
+import MessageCondition from "./../Conditions/MessageCondition";
 
 export default class MessageAction {
     

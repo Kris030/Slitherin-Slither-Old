@@ -1,14 +1,14 @@
 import * as fs from 'fs';
 import config from "./config";
+import ytdl from 'ytdl-core-discord';
 import * as Discord from 'discord.js' ;
 import { User, Message } from 'discord.js';
-import ytdl from 'ytdl-core-discord';
+import { traverseDialogTree, emojifyString, getRandomElement, ParseSupportedType, sleep } from "./utils";
 
+import MessageAction from "./Actions/MessageAction";
 import CombinedCondition from './Conditions/CombinedCondition';
 import ContainsCondition from './Conditions/ContainsCondition';
 import PrefixCommandCondition from './Conditions/PrefixCommandCondition';
-import { emojifyString, getRandomElement, ParseSupportedType, sleep } from "./utils";
-import MessageAction from "./MessageAction";
 import TypedPrefixCommandCondition from './Conditions/TypedPrefixCommandCondition';
 
 const discordClient = new Discord.Client();
@@ -74,7 +74,7 @@ discordClient.on('message', async (msg: Message) => {
 	//	messageAction.tryRun();
 
 	const b = await Promise.all(messageActions.map(a => a.tryRun()));
-	const any = b.includes(true);
+	const ran = b.filter(x => x), ranC = ran.length, any = ranC != 0;
 	
 });
 
@@ -103,26 +103,6 @@ const createActions = (msg: Message) => {
 		), new MessageAction(
 			new ContainsCondition(msg, 'based'), () => msg.react('👺')
 		), new MessageAction(
-			new PrefixCommandCondition(msg, 'ssaudio', ),//[URL,]),
-			async (args: any[]) => {
-				const vc = msg.member.voice.channel;
-				if (!vc || !vc.joinable)
-					return msg.channel.send("sry can't join");
-				
-				const url: URL = args[1];
-
-				//let yTErr = false, yStream = ytdl(url.href);
-				//yStream.then(y => {
-				//	y.on('end', () => console.log('ytstream end'));
-				//}).catch(() => yTErr = true);
-
-				const connection = await vc.join();
-				const dispatcher = connection.play(fs.createReadStream('C:/Users/Én/Music/Saját/Fav/LOLZ/Crazy Frog - Axel F.mp3'));//await yStream);
-
-				await sleep(30_000);
-				connection.disconnect();
-			}
-		), new MessageAction(
 			new PrefixCommandCondition(msg, 'sslist'),
 			async () => {
 				let str = '', i = 0;
@@ -148,29 +128,100 @@ const createActions = (msg: Message) => {
 			() => msg.reply('it fucking works lol 👺')
 		), new MessageAction(
 			new PrefixCommandCondition(msg, 'ssemojify', { parseFully: false }),
-			async (args: string[]) => msg.channel.send(emojifyString(args[1]))
+			async (args: string[]) => {
+				const str = emojifyString(args[1]);
+				if (str.length <= 2000)
+					msg.channel.send(str);
+				else {
+					await msg.channel.send('very long schlong 😏');
+					
+					console.log('args[1].length: ' + args[1].length);
+					console.log('str.length: ' + str.length);
+					console.log({str});
+					
+					let i = 0;
+					for (; i < str.length; i += 2000) {
+						console.log('i: ' + i + ' str.substr(i, 2000): ' + str.substr(i, 2000));
+						
+						await msg.channel.send(str.substr(i, 2000));
+					}
+
+				}
+			}
 		), new MessageAction(
             new PrefixCommandCondition(msg, 'sstart'),
-            async () => {
-				await msg.reply('you stoned?');
-
-				try {
-					await msg.channel.awaitMessages(
-						(m: Message) => m.author == msg.author && m.content.toLowerCase() == 'yes',
-						{
-							time: 30_000,
-							max: 1,
-							errors: ['time'],
-						}
-					);
-					msg.channel.send('I\'m tellin your momma');
-				} catch (e) {}
-
-			}
+            async () => traverseDialogTree(msg.channel as Discord.TextChannel, msg.author, {
+						text: 'you stoned?',
+						responses: [
+							{
+								answer: 'yes',
+								branch: {
+									text: 'I\'m telling your momma',
+									responses: [
+										{
+											answer: (a: Message): boolean => a.mentions.members.has(discordClient.user.id),
+											branch: {
+												text: 'secret text lol'
+											}
+										}
+									]
+								}
+							}, {
+								answer: 'no',
+								branch: {
+									text: 'lol want some? 🥦',
+									responses: [
+										{
+											answer: 'yes',
+											branch: {
+												text: 'sry we\'re out of stock'
+											}
+										}, {
+											answer: 'no',
+											branch: {
+												text: 'then why did you ask in the first place... you probably have homework to do'
+											}
+										}
+									]
+								}
+							},
+						]
+					}
+				)
         ), new MessageAction(
 			new TypedPrefixCommandCondition(msg, 'sstypes', [String, Number, Boolean, Date, User, URL, Object, BigInt, RegExp, ]),
 			(args: ParseSupportedType[]) =>
 				msg.channel.send(JSON.stringify(args, (_, v) => typeof v === 'bigint' ? v.toString() : v, 2))
+		), new MessageAction(
+			new TypedPrefixCommandCondition(msg, 'ssaudio', [URL,]),
+			async (args: any[]) => {
+				const vc = msg.member.voice.channel;
+				if (!vc || !vc.joinable)
+					return msg.channel.send("sry can't join");
+				
+				const url: URL = args[1];
+
+				//let yTErr = false, yStream = ytdl(url.href);
+				//yStream.then(y => {
+				//	y.on('end', () => console.log('ytstream end'));
+				//}).catch(() => yTErr = true);
+
+				const alreadyIn = vc.members.has(discordClient.user.id);
+
+				const connection = await vc.join();
+				const dispatcher = connection.play(fs.createReadStream('C:/Users/Én/Music/Saját/Fav/LOLZ/Crazy Frog - Axel F.mp3'));//await yStream);
+
+				if (!alreadyIn) {
+					dispatcher.on('finish', async () => {
+						await sleep(30_000);
+						connection.disconnect();
+					});
+				}
+
+			}
+		), new MessageAction(
+			new PrefixCommandCondition(msg, 'ssleave'),
+			() => msg.member.voice?.channel.leave()
 		),
 	];
 	return arr;
