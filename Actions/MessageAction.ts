@@ -14,7 +14,7 @@ export default class MessageAction {
     constructor(condition: MessageCondition, callback: (args?: [], errors?: any[]) => any, runWithErrors=false) {
         this.condition = condition;
         this.callback = callback;
-        this.runWithErrors = false;
+        this.runWithErrors = runWithErrors;
     }
 
     public async tryRun() {

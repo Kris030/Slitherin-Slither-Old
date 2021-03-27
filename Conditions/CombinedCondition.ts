@@ -1,5 +1,5 @@
 import { Message } from "discord.js";
-import { indent } from "../utils";
+import { indent } from "../Utils/Utils";
 import MessageCondition from "./MessageCondition";
 
 export default class CombinedCondition extends MessageCondition {
@@ -16,7 +16,7 @@ export default class CombinedCondition extends MessageCondition {
 	}
 
 	public toString(): string {
-		let str = '↕️ CombinedCondition {\n', i = 0;
+		let str = `↕️ CombinedCondition (${this.parts.length}) {\n`, i = 0;
 
 		const plen = this.parts.length - 1, line = () => indent(this.parts[i].toString(), 6, ' ');
 		for (; i < plen; i++)

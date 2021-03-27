@@ -15,7 +15,7 @@ export default class ContainsCondition extends MessageCondition {
 	}
 
 	public toString(): string {
-		return `📥 ContainsCondition ["${this.text}"]`;
+		return `📥 ContainsCondition ("${this.text}")`;
 	}
 
 }
