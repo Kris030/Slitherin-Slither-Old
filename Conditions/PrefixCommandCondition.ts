@@ -3,7 +3,7 @@ import { Message } from "discord.js";
 
 export default class PrefixCommandCondition extends MessageCondition {
 
-	private readonly prefix: string;
+	protected readonly prefix: string;
 	private readonly parseFully: boolean;
 	private readonly ignoreEmpty: boolean;
 
@@ -17,10 +17,6 @@ export default class PrefixCommandCondition extends MessageCondition {
 	public shouldRun(): boolean {
 		this.parseArgs();
 		return this.args.length > 0 && this.args[0] == this.prefix;
-	}
-
-	public toString(): string {
-		return `⏯️ PrefixCondition ["${this.prefix}"]`;
 	}
 	
 	public parseArgs() {
@@ -87,13 +83,13 @@ export default class PrefixCommandCondition extends MessageCondition {
 
 		this.args = this.ignoreEmpty ? this.args : this.args.filter((t: string) => t != '');
 	}
+
+	public toString(): string {
+		return `⏯️ PrefixCondition ["${this.prefix}"]`;
+	}
 }
 
-type PrefixCommandConditionOptions = {
+export type PrefixCommandConditionOptions = {
 	parseFully?: boolean;
 	ignoreEmpty?: boolean;
 };
-
-export {
-	PrefixCommandConditionOptions,
-}

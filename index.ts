@@ -96,24 +96,23 @@ const createActions = (msg: Message) => {
 			new PrefixCommandCondition(msg, 'ssemojify', { parseFully: false }),
 			async (args: string[]) => {
 				const str = emojifyString(args[0]);
-
-				if (str?.length <= 2000) {
-					msg.channel.send(str);
-					return;
-				}
 				
-				await msg.channel.send('very long schlong 😏');
+				let s = '', splits = 0;
+				for (const c of str) {
+					const r = replaceEmojis(c);
 
-				for (let i = 0; i < str.length; i += 2000) {
-					let s = str.substr(i, 2000);
-					if (replaceEmojis(s).length > 4500) {
-						const h = s.length / 2;
-						await msg.channel.send(s.substr(0, h));
-						s = s.substring(h + 1);
-					}
-					await msg.channel.send(s);
+					if (s.length + r.length >= 2000) {
+						splits++;
+						await msg.channel.send(s);
+						s = r;
+					} else
+						s += r;
 				}
+				if (s != '')
+					await msg.channel.send(s);
 
+				if (splits > 1)
+					await msg.channel.send('very long schlong 😏');
 			}
 		), new MessageAction(
 			new PrefixCommandCondition(msg, 'sstart'),

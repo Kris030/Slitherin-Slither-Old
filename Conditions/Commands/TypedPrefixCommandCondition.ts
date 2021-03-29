@@ -22,6 +22,6 @@ export default class TypeCommandMiddleware extends PrefixCommandCondition {
 	}
 	
 	public toString(): string {
-		return `⏯️‼️ TypedCommandPrefixCondition ("${arrayToString(this.types.map((c: NewableFunction) => c.name))})`;
+		return `⏯️‼️ TypedCommandPrefixCondition ("${this.prefix}", ${arrayToString(this.types.map((c: NewableFunction) => c.name))})`;
 	}
 }
