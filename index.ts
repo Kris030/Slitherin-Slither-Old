@@ -1,8 +1,8 @@
 import config from './config';
 import ytdl from 'ytdl-core-discord';
 import { putFaceOnImage } from './Utils/ImageUtils';
-import Discord, { Channel, Client, Message, TextChannel } from 'discord.js' ;
-import { arrayToString, emojifyString, getRandomElement, ParseSupportedType, replaceEmojis, sleep } from './Utils/Utils';
+import Discord, { Channel, Client, Message, TextChannel, User } from 'discord.js' ;
+import { arrayToString, emojifyString, getRandomElement, ParseSupportedType, replaceEmojis, sleep, userFromMention } from './Utils/Utils';
 
 import MessageAction from './Actions/MessageAction';
 import TextDialogTree from './Dialog/TextDialogTree';
@@ -195,10 +195,10 @@ const createActions = (msg: Message) => {
 				)
 			)
 		), new MessageAction(
-			new PrefixCommandCondition(msg, 'ssface'),
-			async () => {
+			new TypedPrefixCommandCondition(msg, 'ssface', [User], { client: discordClient }),
+			async (args: any[]) => {
 				msg.channel.send(
-					await putFaceOnImage(msg.author,
+					await putFaceOnImage(args[0] ? args[0] : userFromMention(msg.author),
 						'https://media.discordapp.net/attachments/774322950484656138/813423069237608478/unknown.png',
 						150, 20))
 			}

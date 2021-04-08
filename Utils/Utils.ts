@@ -1,4 +1,4 @@
-import { Client, User } from "discord.js";
+import { Client, User } from 'discord.js';
 
 /**
  * Returns a promise for waiting an amount of milliseconds.
@@ -126,7 +126,7 @@ export function emojifyString(str: string) {
 
 export type ParseSupportedType = String | Number | Boolean | Date | User | URL | Object | BigInt | RegExp;
 
-export function parseType(str: string, type: ParseSupportedType): ParseSupportedType {
+export function parseType(str: string, type: ParseSupportedType, client: Client): ParseSupportedType {
 	switch (type) {
 		case String: return str;
 		case Number: return parseInt(str);
@@ -136,7 +136,7 @@ export function parseType(str: string, type: ParseSupportedType): ParseSupported
 		case URL: return new URL(str);
 		case BigInt: return BigInt(str);
 		case RegExp: return new RegExp(str);
-		case User: return userFromMention(str);
+		case User: return userFromMention(str, client);
 		default: throw 'Unsupported type ' + type;
 	}
 }
@@ -145,7 +145,9 @@ export function isMention(str: string): boolean {
 	return /\<[\!\&\@]{0,2}\d{18}\>/.test(str);
 }
 
-export function userFromMention(str: string, client?: Client): string | User {
+export function userFromMention(str: string | User, client?: Client): string | User {
+	if (str instanceof User)
+		return str;
 	if (!isMention(str))
 		throw 'Not a mention: ' + str;
 
